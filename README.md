@@ -4,7 +4,7 @@
 
 Found on UpWork:
 
-Need someone to download the [following file](https://www.ecfr.gov/current/title-12) into a Neo4J deatabase, then download and parse the [following file]( https://www.ecfr.gov/api/versioner/v1/full/2024-02-21/title-12.xml?part=1002), and attach/match it to the hierarchy file (the first file).
+Need someone to download the [following file](https://www.ecfr.gov/current/title-12) into a Neo4J database, then download and parse the [following file]( https://www.ecfr.gov/api/versioner/v1/full/2024-02-21/title-12.xml?part=1002), and attach/match it to the hierarchy file (the first file).
 
 If successful, we will keep doing this with other files.
 
