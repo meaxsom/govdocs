@@ -64,7 +64,7 @@ Must have Neo4J experience, must have data parsing and matching experience.
 
 ### Step 2
 - read file from s3 into local environment 
-- used [dotenv](https://dev.to/jakewitcher/using-env-files-for-environment-variables-in-python-applications-55a1) to control enviornment variable (AWS keysinjection into container
+- used [dotenv](https://dev.to/jakewitcher/using-env-files-for-environment-variables-in-python-applications-55a1) to control enviornment variable (AWS keys injection into container)
 
 
 ### Step 3
