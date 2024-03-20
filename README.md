@@ -31,7 +31,7 @@ Must have Neo4J experience, must have data parsing and matching experience.
 	- [boto3](https://github.com/boto/boto3)
 	
 - set up neo4j into same environment
-	-[Build applications with Neo4j and Python](https://neo4j.com/docs/python-manual/current/)
+- [Build applications with Neo4j and Python](https://neo4j.com/docs/python-manual/current/)
 
 ### Step 0.5
 
