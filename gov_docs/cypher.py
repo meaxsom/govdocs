@@ -114,13 +114,13 @@ class Cypher:
         # add the type ID to the current structure
         inJSONObject[self.__PROPERTY_TYPE_ID_KEY] = str(theId)
 
-        theStatement = "CREATE ({}:Division:{}{})".format("d", theId.prefix.capitalize(), self.__make_division(inJSONObject))
+        theStatement = "MERGE ({}:Division:{}{})".format("d", theId.prefix.capitalize(), self.__make_division(inJSONObject))
         self.__output_statement(theStatement)
 
         # All but the first one should have a parent id
         ## create the relationship between the parent and child
         if (inId != None):
-            theStatement = 'MATCH (a:Division), (b:Division) WHERE a.typeId = "{}" AND b.typeId = "{}" CREATE (a)-[r:HAS_CHILD]->(b)'.format(inId, theId)
+            theStatement = 'MATCH (a:Division), (b:Division) WHERE a.typeId = "{}" AND b.typeId = "{}" MERGE (a)-[r:HAS_CHILD]->(b)'.format(inId, theId)
             self.__output_statement(theStatement)
 
         ## since this is a nested structure, iterate over the children calling this method recursivly
@@ -130,6 +130,11 @@ class Cypher:
         except KeyError as e:
             pass ## should only get this if there are no "children" objects
 
+    
+    ## create constraints
+    def createUniqueConstraint(self, inLabel, inProperty):
+        theStatement = 'CREATE CONSTRAINT {0}_{1}_unique IF NOT EXISTS FOR (x:{0}) REQUIRE x.{1} is UNIQUE'.format(inLabel, inProperty)
+        self.__output_statement(theStatement)
 
     ## populate using XML data recursively
     def populateXML(self, inParent, inXMLObject):
@@ -154,7 +159,7 @@ class Cypher:
         theId = self.__make_id(inXMLObject.tag.lower())
 
         ## insert the XML into neo4J
-        theStatement = "CREATE ({}:XMLData:{}{})".format("d", inXMLObject.tag.capitalize(), self.__make_xml_node(str(theId), node_id, ET.tostring(node_root).decode("utf-8").replace('"', r'\"')))
+        theStatement = "MERGE ({}:XMLData:{}{})".format("d", inXMLObject.tag.capitalize(), self.__make_xml_node(str(theId), node_id, ET.tostring(node_root).decode("utf-8").replace('"', r'\"')))
         self.__output_statement(theStatement)
 
         ## find the relationship between the "N" of this record and the "N" of the child record
@@ -163,14 +168,14 @@ class Cypher:
             if (matching_nodes):
                 ## B is typically the target of the relationship so we'll need it's typeId and the typeId of the node we
                 ## just inserted
-                theStatement = 'MATCH (a:Division), (b:XMLData) WHERE a.typeId = "{}" AND b.typeId = "{}" CREATE (a)-[r:HAS_XML]->(b)'.format(matching_nodes["b.typeId"], str(theId))
+                theStatement = 'MATCH (a:Division), (b:XMLData) WHERE a.typeId = "{}" AND b.typeId = "{}" MERGE (a)-[r:HAS_XML]->(b)'.format(matching_nodes["b.typeId"], str(theId))
                 self.__output_statement(theStatement)
 
         elif len(div_elements) > 0:
             ## in this case, we want to match one of the child nodes but we want "a" not "b"
             matching_nodes=self.__find_nodes(node_id, div_elements[0].get("N"))
             if (matching_nodes):
-                theStatement = 'MATCH (a:Division), (b:XMLData) WHERE a.typeId = "{}" AND b.typeId = "{}" CREATE (a)-[r:HAS_XML]->(b)'.format(matching_nodes["a.typeId"], str(theId))
+                theStatement = 'MATCH (a:Division), (b:XMLData) WHERE a.typeId = "{}" AND b.typeId = "{}" MERGE (a)-[r:HAS_XML]->(b)'.format(matching_nodes["a.typeId"], str(theId))
                 self.__output_statement(theStatement)
 
         ## walk the child elements and insert them

@@ -2,7 +2,7 @@
 
 ## Background
 
-Found on UpWork:
+Found on [UpWork](https://www.upwork.com/jobs/~010f399c86288cbe73):
 
 Need someone to download the [following file](https://www.ecfr.gov/current/title-12) into a Neo4J database, then download and parse the [following file]( https://www.ecfr.gov/api/versioner/v1/full/2024-02-21/title-12.xml?part=1002), and attach/match it to the hierarchy file (the first file).
 
@@ -88,3 +88,39 @@ Must have Neo4J experience, must have data parsing and matching experience.
   - Use EC2 w/mounted EBS for Neo4J DB
   - Use lambda function tied to S3 bucket(s) for updating JSON/XML files and serverless Neptune
   - Some combo of the above
+
+
+- adjust Cypher queries to use "best practices"
+  - use `MERGE` instead of `CREATE`
+  - create `CONSTRAINTS` on `typeId` for uniquness and value
+  - standardize on property creation so each node has the same "primary" key(??)
+
+
+## Schema
+
+There are 2 general purpose "nodes" in the graph:
+- `Division` nodes represent an individual "record" from the JSON file
+  - each `Division` has an additional label that is derived from the `type` property, e.g. "Section", "Chapter", etc
+  - each `Division` node contains a `typeId` property that represents a unique ID for the node since one doesn't seem to exist within the existing data structure. The `typeId` property us gerated using the "typeid-python" module
+  - each `Division` node also contains all the properties from the original JSON record with the exception of `children`
+  - Each "child" of a `Division` become its own `Division` node, i.e. all `children` records of a `Division` are themselves `Divisions` and related to their parent `Division` by a `HAS_CHILD` relationship. 
+
+- `XMLData` nodes represent the collection of elements within a XML `DIVn` element, e.g. `DIV5`. HTML/XML tags with the element name of `DIV` are ignored.
+  - each `XMLData` node contains a `typeId` property that represents a unique ID for the node since one doesn't seem to exist within the existing data structure. The `typeId` property us gerated using the "typeid-python" module
+  - each `XMLData` node also contains all the properties from the original XML `DIVn` element - including text - with the exception of embedded `DIVn` elements
+  - each "child" `DIVn` element of a `DIVn` element becomes its own `XMLData` node.
+  - Each `XMLData` node is assoicated with a `Division` node by the following:
+    - discover the related parent/child `Division` nodes via the `HAS_CHILD` relationship that contain matching `identifier` propertie from the parent/child `DIVn/N` element values
+      - i.e `MATCH (a:Division)-[:HAS_CHILD]->(b:Division) return a.typeId, b.typeId`
+    - use the approperiate `typeId` to create a `[:HAS_XML]` relationship between the `Division` and `XMLData` nodes
+  
+- The population of the JSON `Division` nodes and `XMLData` nodes is recursive
+
+```
+(a:Division)-[:HAS_CHILD]->(b:Divsion)
+(a:Division)-[:HAS_XML]->(x:XMLData)
+```
+Each `Division` may have multiple `[:HAS_CHILD]` relationships
+Each `Division` may have only 1 [:HAS_XML] relationship
+
+

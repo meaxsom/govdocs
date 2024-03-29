@@ -68,6 +68,11 @@ def main():
         session = driver.session(database=os.getenv(__NEO4J_DB_KEY))
 
     parser = cypher.Cypher(session)
+
+    ## apply uniqueness constraints to Division.typeId and XMLData.typeId
+    parser.createUniqueConstraint('Division', 'typeId')
+    parser.createUniqueConstraint('XMLData', 'typeId')
+
     if (not is_xml):
         parser.populateJSON(None, json.loads(raw_data))
     else:
